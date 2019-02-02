@@ -1,0 +1,59 @@
+{
+    "config": {
+        "lora-radio": {
+            "help": "Which radio to use (options: SX1272,SX1276)",
+            "value": "SX1276"
+        },
+        "main_stack_size":     { "value": 4096 },
+
+        "lora-spi-mosi":       { "value": "NC" },
+        "lora-spi-miso":       { "value": "NC" },
+        "lora-spi-sclk":       { "value": "NC" },
+        "lora-cs":             { "value": "NC" },
+        "lora-reset":          { "value": "NC" },
+        "lora-dio0":           { "value": "NC" },
+        "lora-dio1":           { "value": "NC" },
+        "lora-dio2":           { "value": "NC" },
+        "lora-dio3":           { "value": "NC" },
+        "lora-dio4":           { "value": "NC" },
+        "lora-dio5":           { "value": "NC" },
+        "lora-rf-switch-ctl1": { "value": "NC" },
+        "lora-rf-switch-ctl2": { "value": "NC" },
+        "lora-txctl":          { "value": "NC" },
+        "lora-rxctl":          { "value": "NC" },
+        "lora-ant-switch":     { "value": "NC" },
+        "lora-pwr-amp-ctl":    { "value": "NC" },
+        "lora-tcxo":           { "value": "NC" }
+    },
+    "target_overrides": {
+        "*": {
+            "lora.over-the-air-activation": true,
+            "lora.duty-cycle-on": true,
+            "lora.phy": "EU868",
+            "lora.device-eui": "{ 0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE, 0xF0 }",
+            "lora.application-eui": "{ 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }",
+            "lora.application-key": "{ 0x97, 0xB1, 0xaF, 0x77, 0xC4, 0xCB, 0x6A, 0x1C, 0x6E, 0xF3, 0xE9, 0x3B, 0x6A, 0xEA, 0x76, 0x70 }",
+            "lora.device-address": "0x12345678"
+        },
+        "NRF51_DK":{
+            "lora-spi-mosi":       "p23",
+            "lora-spi-miso":       "p21",
+            "lora-spi-sclk":       "p25",
+            "lora-cs":             "p28",
+            "lora-reset":          "p10",
+            "lora-dio0":           "p13",
+            "lora-dio1":           "p22",
+            "lora-dio2":           "p24",
+            "lora-dio3":           "p7",
+            "lora-dio4":           "p5",
+            "lora-dio5":           "p17",
+            "lora-rf-switch-ctl1": "NC",
+            "lora-rf-switch-ctl2": "NC",
+            "lora-txctl":          "NC",
+            "lora-rxctl":          "NC",
+            "lora-ant-switch":     "NC",
+            "lora-pwr-amp-ctl":    "NC",
+            "lora-tcxo":           "NC"
+        }
+    }
+}
