@@ -11,6 +11,17 @@
         }
     }, 
     {
+        "module": "I2CEeprom\\I2CEeprom.o", 
+        "size": {
+            ".data-delta": 0, 
+            ".text-delta": 0, 
+            ".bss": 0, 
+            ".data": 0, 
+            ".bss-delta": 0, 
+            ".text": 354
+        }
+    }, 
+    {
         "module": "SX1276\\SX1276_LoRaRadio.o", 
         "size": {
             ".data-delta": 0, 
@@ -44,6 +55,17 @@
         }
     }, 
     {
+        "module": "Watchdog\\Watchdog.o", 
+        "size": {
+            ".data-delta": 0, 
+            ".text-delta": 0, 
+            ".bss": 0, 
+            ".data": 0, 
+            ".bss-delta": 0, 
+            ".text": 122
+        }
+    }, 
+    {
         "module": "[lib]\\c_p.l", 
         "size": {
             ".data-delta": 0, 
@@ -51,7 +73,7 @@
             ".bss": 576, 
             ".data": 16, 
             ".bss-delta": 0, 
-            ".text": 10933
+            ".text": 11935
         }
     }, 
     {
@@ -84,7 +106,7 @@
             ".bss": 0, 
             ".data": 0, 
             ".bss-delta": 0, 
-            ".text": 4978
+            ".text": 5102
         }
     }, 
     {
@@ -113,11 +135,11 @@
         "module": "main.o", 
         "size": {
             ".data-delta": 0, 
-            ".text-delta": 40, 
-            ".bss": 3818, 
-            ".data": 112, 
+            ".text-delta": 0, 
+            ".bss": 3912, 
+            ".data": 124, 
             ".bss-delta": 0, 
-            ".text": 5353
+            ".text": 7467
         }
     }, 
     {
@@ -147,10 +169,10 @@
         "size": {
             ".data-delta": 0, 
             ".text-delta": 0, 
-            ".bss": 96, 
-            ".data": 4, 
+            ".bss": 144, 
+            ".data": 8, 
             ".bss-delta": 0, 
-            ".text": 2851
+            ".text": 4283
         }
     }, 
     {
@@ -172,7 +194,7 @@
             ".bss": 1476, 
             ".data": 109, 
             ".bss-delta": 0, 
-            ".text": 66140
+            ".text": 65718
         }
     }, 
     {
@@ -194,7 +216,7 @@
             ".bss": 544, 
             ".data": 132, 
             ".bss-delta": 0, 
-            ".text": 5665
+            ".text": 5721
         }
     }, 
     {
@@ -213,18 +235,18 @@
         "size": {
             ".data-delta": 0, 
             ".text-delta": 0, 
-            ".bss": 1083, 
+            ".bss": 1187, 
             ".data": 132, 
             ".bss-delta": 0, 
-            ".text": 14842
+            ".text": 17084
         }
     }, 
     {
         "summary": {
-            "static_ram": 15236, 
-            "total_flash_delta": 40, 
+            "static_ram": 15498, 
+            "total_flash_delta": 0, 
             "static_ram_delta": 0, 
-            "total_flash": 147015
+            "total_flash": 154055
         }
     }
 ]

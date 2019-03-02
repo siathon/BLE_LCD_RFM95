@@ -266,3 +266,10 @@ BUILD\NRF51_DK\ARM\main.o: ./mbed-os/features/mbedtls/inc/mbedtls/cmac.h
 BUILD\NRF51_DK\ARM\main.o: ./mbed-os/features/lorawan/LoRaWANBase.h
 BUILD\NRF51_DK\ARM\main.o: ./SX1276/SX1276_LoRaRadio.h
 BUILD\NRF51_DK\ARM\main.o: .\CounterService.h
+BUILD\NRF51_DK\ARM\main.o: .\ParameterService.h
+BUILD\NRF51_DK\ARM\main.o: ./Watchdog/Watchdog.h
+BUILD\NRF51_DK\ARM\main.o: ./mbed-os/targets/TARGET_NORDIC/TARGET_NRF5x/TARGET_NRF51/TARGET_MCU_NRF51822_UNIFIED/sdk/softdevice/s130/headers/nrf_soc.h
+BUILD\NRF51_DK\ARM\main.o: ./mbed-os/targets/TARGET_NORDIC/TARGET_NRF5x/TARGET_NRF51/TARGET_MCU_NRF51822_UNIFIED/sdk/softdevice/s130/headers/nrf_svc.h
+BUILD\NRF51_DK\ARM\main.o: ./mbed-os/targets/TARGET_NORDIC/TARGET_NRF5x/TARGET_NRF51/TARGET_MCU_NRF51822_UNIFIED/sdk/softdevice/s130/headers/nrf_error_soc.h
+BUILD\NRF51_DK\ARM\main.o: ./mbed-os/targets/TARGET_NORDIC/TARGET_NRF5x/TARGET_NRF51/TARGET_MCU_NRF51822_UNIFIED/sdk/softdevice/s130/headers/nrf_error.h
+BUILD\NRF51_DK\ARM\main.o: ./I2CEeprom/I2CEeprom.h

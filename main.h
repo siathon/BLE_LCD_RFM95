@@ -13,22 +13,23 @@
 // #include "debit.h"
 // #include "bottom.h"
 #include "CounterService.h"
-// #include "ParameterService.h"
+#include "ParameterService.h"
+#include "Watchdog.h"
+#include "I2CEeprom.h"
 
-#define DEBUG 0
+#define DEBUG 1
 
 #define __MOSI p23
 #define __MISO p21
 #define __SCLK p25
-#define __CS   p14
-#define __DC   p12
-#define __RST  p6
+#define __CS   p5
+#define __DC   p11
+#define __RST  p9
 
 using namespace std;
 using namespace events;
-
-Serial pc(p0, p2);
-
+Watchdog wd;
+Serial pc(p14, p16);
 SX1276_LoRaRadio radio(MBED_CONF_APP_LORA_SPI_MOSI,
                            MBED_CONF_APP_LORA_SPI_MISO,
                            MBED_CONF_APP_LORA_SPI_SCLK,
@@ -55,27 +56,29 @@ lorawan_status_t retcode;
 
 TFT_ILI9163C tft(__MOSI, __MISO, __SCLK, __CS, __DC, __RST);
 
-DigitalOut nrfLED(p20, 0);
-DigitalOut lcdEn(p8, 0);
-DigitalOut sensorEn(p3);
-AnalogIn sensor(p1);
+I2CEeprom eeprom(p30, p7, 0xA0, 64, 0);
 
-const static char     DEVICE_NAME[] = "0.5Inch";
+DigitalOut nrfLED(p12, 0);
+DigitalOut lcdEn(p19, 1);
+DigitalOut sensorEn(p22);
+AnalogIn sensor(p3);
+
+const static char     DEVICE_NAME[] = "0.5Inch_4";
 static const uint16_t uuid16_list[] = {0xA000};
-
 CounterService *counterService;
-// ParameterService *parameterService;
+ParameterService *parameterService;
 
 int f1 = 0, f2 = 0, flow = 0, flowCC = 0, oldFlowCC = -1;
 int scanCnt = 0, sampleCount = 10, sampleTime = 10, meanValue = 0, battValue = 100, oldBattValue = -1;
 int pin = 0, ready = 0;
 bool connected = false, setLowTh = false, setHighTh = false, setSampleTime = false, setSampleCount = false, setCounterParameter = false;
-int counter = 0, oldCounter = -1, counterLitr = 999999999, oldCounterLitr = -1, sensorValue = 0, oldSensorValue = -1;
+int counter = 0, oldCounter = -1, counterLitr = 0, oldCounterLitr = -1, sensorValue = 0, oldSensorValue = -1;
 char str[10];
 float counterParameter = 3.46;
 int16_t  x1, y1;
 uint16_t w, h;
-int highTh = 200, lowTh = 130;
+int highTh = 70, lowTh = 30;
+int rstCnt = 0;
 
 uint8_t tx_buffer[10];
 uint8_t rx_buffer[10];
@@ -83,6 +86,46 @@ bool joined = false;
 bool joining = false;
 bool sending = false;
 string output;
+
+void blink(){
+  nrfLED = !nrfLED;
+}
+
+void readFromEeprom() {
+
+    if (DEBUG) {
+        pc.printf("Reading counter from EEPROM...");
+    }
+    wd.Service();
+    if (eeprom.read(0, str, 10) == 10) {
+        if (DEBUG) {
+            pc.printf("Done.(Value read = %s)\n", str);
+            counter = atoi(str);
+        }
+    } else {
+        if (DEBUG) {
+            pc.printf("Failed.\n");
+        }
+    }
+}
+
+void writeToEeprom() {
+
+    sprintf(str, "%09d", counter);
+    if (DEBUG) {
+        pc.printf("Writing counter(%d) in EEPROM...", counter);
+    }
+    wd.Service();
+    if (eeprom.write(0, str, sizeof(str)) == sizeof(str)) {
+        if (DEBUG) {
+            pc.printf("Done.\n");
+        }
+    } else {
+        if (DEBUG) {
+            pc.printf("Failed.\n");
+        }
+    }
+}
 
 int joinOTAA(){
     if (DEBUG) {
@@ -100,7 +143,8 @@ int joinOTAA(){
 int send(int count){
     int16_t result;
     int packetLen;
-    packetLen = sprintf((char*)tx_buffer, "count=%d", counterLitr);
+    rstCnt++;
+    packetLen = sprintf((char*)tx_buffer, "W[01]=%d,W[02]=%d,W[03]=0", counterLitr, rstCnt);
     if (DEBUG) {
         pc.printf("Sending Message: count = %d ...", counterLitr);
     }
@@ -112,39 +156,42 @@ int send(int count){
     return 0;
 }
 
-int receive(){
-    int16_t retcode;
-    retcode = lorawan.receive(MBED_CONF_LORA_APP_PORT, rx_buffer,
-                              sizeof(rx_buffer),
-                              MSG_CONFIRMED_FLAG|MSG_UNCONFIRMED_FLAG);
-
-    if (retcode < 0) {
-        if(DEBUG){
-            pc.printf("receive() - Error code %d\n", retcode);
-        }
-        return -1;
-    }
-    if(DEBUG){
-        pc.printf("Data:");
-
-        for (uint8_t i = 0; i < retcode; i++) {
-            pc.printf("%x", rx_buffer[i]);
-        }
-        pc.printf("Data Length: %d\n", retcode);
-    }
-
-    memset(rx_buffer, 0, sizeof(rx_buffer));
-    return 0;
-}
+// int receive(){
+//     int16_t retcode;
+//     retcode = lorawan.receive(MBED_CONF_LORA_APP_PORT, rx_buffer,
+//                               sizeof(rx_buffer),
+//                               MSG_CONFIRMED_FLAG|MSG_UNCONFIRMED_FLAG);
+//
+//     if (retcode < 0) {
+//         if(DEBUG){
+//             pc.printf("receive() - Error code %d\n", retcode);
+//         }
+//         return -1;
+//     }
+//     if(DEBUG){
+//         pc.printf("Data:");
+//
+//         for (uint8_t i = 0; i < retcode; i++) {
+//             pc.printf("%x", rx_buffer[i]);
+//         }
+//         pc.printf("Data Length: %d\n", retcode);
+//     }
+//
+//     memset(rx_buffer, 0, sizeof(rx_buffer));
+//     return 0;
+// }
 
 void checkJoinAndSend() {
+    if (joining) {
+        wait(4);
+    }
     if (!joined) {
-        if (!joining) {
-            ev_queue.call_in(1000, joinOTAA);
-        }
+        ev_queue.call_in(1000, joinOTAA);
         return;
     }
-
+    if (sending) {
+        wait(4);
+    }
     send(counterLitr);
 }
 
@@ -156,13 +203,12 @@ static void lora_event_handler(lorawan_event_t event){
             }
             joined = true;
             joining = false;
-            checkJoinAndSend();
+            ev_queue.call_in(1000, checkJoinAndSend);
             break;
 
         case DISCONNECTED:
-            joined = false;
             if(DEBUG){
-                pc.printf("Failed\n");
+                pc.printf("Disconnected\n");
             }
             break;
 
@@ -172,44 +218,25 @@ static void lora_event_handler(lorawan_event_t event){
             }
             sending = false;
             break;
-        //
-        // case TX_TIMEOUT:
-        //     if(DEBUG){
-        //         pc.printf("Failed, timeout!\n");
-        //     }
-        //     sending = false;
-        //     break;
-        //
-        // case TX_ERROR:
-        //     if(DEBUG){
-        //         pc.printf("Failed!\n");
-        //     }
-        //     sending = false;
-        //     break;
-        //
-        // case TX_CRYPTO_ERROR:
-        //     if(DEBUG){
-        //         pc.printf("Failed, crypto error!\n");
-        //     }
-        //     sending = false;
-        //     break;
-        //
-        // case TX_SCHEDULING_ERROR:
-        //     if(DEBUG){
-        //         pc.printf("Failed, EventCode = %d\n", event);
-        //     }
-        //     sending = false;
-        //     joining = false;
-        //     lorawan.disconnect();
-        //     break;
 
-        case RX_DONE:
+        case TX_CRYPTO_ERROR:
+        case TX_SCHEDULING_ERROR:
+        case TX_TIMEOUT:
             if(DEBUG){
-                pc.printf("Received message from Network Server\n");
+                pc.printf("Failed, timeout!\n");
             }
-            receive();
+            sending = false;
+            ev_queue.call_in(1000, checkJoinAndSend);
             break;
 
+        //
+        // case RX_DONE:
+        //     if(DEBUG){
+        //         pc.printf("Received message from Network Server\n");
+        //     }
+        //     receive();
+        //     break;
+        //
         // case RX_TIMEOUT:
         //     if(DEBUG){
         //         pc.printf("Message recieve timeout\n");
@@ -222,21 +249,21 @@ static void lora_event_handler(lorawan_event_t event){
         //     }
         //     break;
 
-        // case JOIN_FAILURE:
-        //     if(DEBUG){
-        //         pc.printf("OTAA Failed - Check Keys\n");
-        //     }
-        //     joining = false;
-        //     break;
-        //
-        // case UPLINK_REQUIRED:
-        //     if(DEBUG){
-        //         pc.printf("Uplink required by NS\n");
-        //     }
-        //     break;
+        case JOIN_FAILURE:
+            if(DEBUG){
+                pc.printf("OTAA Failed - Check Keys\n");
+            }
+            joining = false;
+            break;
 
-    //     default:
-    //         MBED_ASSERT("Unknown Event");
+        case UPLINK_REQUIRED:
+            if(DEBUG){
+                pc.printf("Uplink required by NS\n");
+            }
+            break;
+
+        default:
+            MBED_ASSERT("Unknown Event");
     }
 }
 
@@ -247,7 +274,8 @@ int initLora(){
         }
         return -1;
     }
-
+    // lorawan.enable_adaptive_datarate();
+    lorawan.set_confirmed_msg_retries(3);
     int version = radio.read_register(0x42);
     if (version == 0) {
         if (DEBUG) {
@@ -259,119 +287,127 @@ int initLora(){
     callbacks.events = mbed::callback(lora_event_handler);
     lorawan.add_app_callbacks(&callbacks);
 
-    if (lorawan.set_confirmed_msg_retries(3) != LORAWAN_STATUS_OK) {
-        if (DEBUG) {
-            pc.printf("set_confirmed_msg_retries failed!\n");
-        }
-        return -1;
-    }
-
+    // if (lorawan.set_confirmed_msg_retries(3) != LORAWAN_STATUS_OK) {
+    //     if (DEBUG) {
+    //         pc.printf("set_confirmed_msg_retries failed!\n");
+    //     }
+    //     return -1;
+    // }
+//
     // if (lorawan.set_device_class(CLASS_A) != LORAWAN_STATUS_OK) {
     //     if (DEBUG) {
     //         pc.printf("set_device_class class_a failed!\n");
     //     }
     //     return -1;
     // }
-
-    if (lorawan.enable_adaptive_datarate() != LORAWAN_STATUS_OK) {
-        if (DEBUG) {
-            pc.printf("enable_adaptive_datarate failed!\n");
-        }
-        return -1;
-    }
+    //
+    // if (lorawan.enable_adaptive_datarate() != LORAWAN_STATUS_OK) {
+    //     if (DEBUG) {
+    //         pc.printf("enable_adaptive_datarate failed!\n");
+    //     }
+    //     return -1;
+    // }
 
     return 0;
 }
 
-// void resetParams(){
-//     counter = 0;
-//     counterLitr = 0;
-//     oldCounterLitr = -9999;
-//     flow = 0;
-//     flowCC = 0;
-//     oldFlowCC = -9999;
-//     scanCnt = 0;
-// }
+void resetParams(){
+    counter = 0;
+    counterLitr = 0;
+    oldCounterLitr = -9999;
+    flow = 0;
+    flowCC = 0;
+    oldFlowCC = -9999;
+    scanCnt = 0;
+    writeToEeprom();
+}
 
 void disconnectionCallback(const Gap::DisconnectionCallbackParams_t *params){
     (void) params;
     BLE::Instance().gap().startAdvertising();
     connected = false;
+    if (DEBUG) {
+        pc.printf("BLE disconnected\n");
+    }
 }
 
 void connectionCallback(const Gap::ConnectionCallbackParams_t *params) {
     BLE::Instance().gap().stopAdvertising();
     connected = true;
+    if (DEBUG) {
+        pc.printf("BLE connected\n");
+    }
 }
 
-// void onDataWrittenCallback(const GattWriteCallbackParams *params) {
-//     if ((params->handle == parameterService->getValueHandle()) && (params->len == 4)) {
-//         int temp = 0;
-//         for (size_t i = 0; i < 4; i++) {
-//             temp += (params->data[i] << (8*i));
-//         }
-//         if (temp == 9999) {
-//             NVIC_SystemReset();
-//         }
-//
-//         if (temp == 1000) {
-//             resetParams();
-//             return;
-//         }
-//
-//         if (temp == 1001) {
-//             setLowTh = true;
-//             return;
-//         }
-//
-//         if (temp == 1002) {
-//             setHighTh = true;
-//             return;
-//         }
-//
-//         if (temp == 1003) {
-//             setSampleCount = true;
-//             return;
-//         }
-//
-//         if (temp == 1004) {
-//             setSampleTime = true;
-//             return;
-//         }
-//
-//         if (temp == 1005) {
-//             setCounterParameter = true;
-//             return;
-//         }
-//
-//         if (setLowTh) {
-//             lowTh = temp;
-//             setLowTh = false;
-//             return;
-//         }
-//
-//         if (setHighTh) {
-//             highTh = temp;
-//             setHighTh = false;
-//             return;
-//         }
-//
-//         if (setSampleCount) {
-//             sampleCount = temp;
-//             setSampleCount = false;
-//             return;
-//         }
-//
-//         if (setSampleTime) {
-//             sampleTime = temp;
-//             setSampleTime = false;
-//             return;
-//         }
-//         if(setCounterParameter){
-//             counterParameter = (float)(temp / 100.0);
-//         }
-//     }
-// }
+void onDataWrittenCallback(const GattWriteCallbackParams *params) {
+    if ((params->handle == parameterService->getValueHandle()) && (params->len == 4)) {
+        int temp = 0;
+        for (size_t i = 0; i < 4; i++) {
+            temp += (params->data[i] << (8*i));
+        }
+        if (temp == 9999) {
+            // writeToEeprom();
+            NVIC_SystemReset();
+        }
+
+        if (temp == 1000) {
+            resetParams();
+            return;
+        }
+
+        if (temp == 1001) {
+            setLowTh = true;
+            return;
+        }
+
+        if (temp == 1002) {
+            setHighTh = true;
+            return;
+        }
+
+        // if (temp == 1003) {
+        //     setSampleCount = true;
+        //     return;
+        // }
+        //
+        // if (temp == 1004) {
+        //     setSampleTime = true;
+        //     return;
+        // }
+
+        if (temp == 1005) {
+            setCounterParameter = true;
+            return;
+        }
+
+        if (setLowTh) {
+            lowTh = temp;
+            setLowTh = false;
+            return;
+        }
+
+        if (setHighTh) {
+            highTh = temp;
+            setHighTh = false;
+            return;
+        }
+
+        // if (setSampleCount) {
+        //     sampleCount = temp;
+        //     setSampleCount = false;
+        //     return;
+        // }
+        //
+        // if (setSampleTime) {
+        //     sampleTime = temp;
+        //     setSampleTime = false;
+        //     return;
+        // }
+        if(setCounterParameter){
+            counterParameter = (float)(temp / 100.0);
+        }
+    }
+}
 
 void bleInitComplete(BLE::InitializationCompleteCallbackContext *params){
     BLE&        ble   = params->ble;
@@ -386,9 +422,9 @@ void bleInitComplete(BLE::InitializationCompleteCallbackContext *params){
     ble.gap().onConnection(connectionCallback);
 
     counterService = new CounterService(ble, counter);
-    // parameterService = new ParameterService(ble, counterParameter);
+    parameterService = new ParameterService(ble, counterParameter);
 
-    // ble.gattServer().onDataWritten(onDataWrittenCallback);
+    ble.gattServer().onDataWritten(onDataWrittenCallback);
 
     /* setup advertising */
     ble.gap().accumulateAdvertisingPayload(GapAdvertisingData::BREDR_NOT_SUPPORTED | GapAdvertisingData::LE_GENERAL_DISCOVERABLE);
@@ -494,6 +530,7 @@ void showLitr(){
 }
 
 void scanPin(){
+    wd.Service();
     scanCnt++;
     sensorEn = 1;
     uint16_t sum = 0;
@@ -526,16 +563,18 @@ void scanPin(){
         f2 = counter;
         flow = (f2 - f1) * 4;
         scanCnt = 0;
+
     }
     if (scanCnt % 50 == 0) {
         sensorValue = meanValue;
+        nrfLED = !nrfLED;
     }
 }
 
 void update(){
     if(connected){
         tft.sleepMode(false);
-        lcdEn = 1;
+        lcdEn = 0;
         if(sensorValue != oldSensorValue){
             showSensorValue();
             oldSensorValue = sensorValue;
@@ -567,6 +606,6 @@ void update(){
     }
     else{
         tft.sleepMode(true);
-        lcdEn = 0;
+        lcdEn = 1;
     }
 }

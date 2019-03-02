@@ -23,16 +23,16 @@
 
 // Configuration parameters
 #define MBED_CONF_APP_LORA_ANT_SWITCH                                         NC                                                                                                 // set by application[NRF51_DK]
-#define MBED_CONF_APP_LORA_CS                                                 p28                                                                                                // set by application[NRF51_DK]
-#define MBED_CONF_APP_LORA_DIO0                                               p13                                                                                                // set by application[NRF51_DK]
-#define MBED_CONF_APP_LORA_DIO1                                               p22                                                                                                // set by application[NRF51_DK]
-#define MBED_CONF_APP_LORA_DIO2                                               p24                                                                                                // set by application[NRF51_DK]
-#define MBED_CONF_APP_LORA_DIO3                                               p7                                                                                                 // set by application[NRF51_DK]
-#define MBED_CONF_APP_LORA_DIO4                                               p5                                                                                                 // set by application[NRF51_DK]
-#define MBED_CONF_APP_LORA_DIO5                                               p17                                                                                                // set by application[NRF51_DK]
+#define MBED_CONF_APP_LORA_CS                                                 p29                                                                                                // set by application[NRF51_DK]
+#define MBED_CONF_APP_LORA_DIO0                                               p17                                                                                                // set by application[NRF51_DK]
+#define MBED_CONF_APP_LORA_DIO1                                               p15                                                                                                // set by application[NRF51_DK]
+#define MBED_CONF_APP_LORA_DIO2                                               p13                                                                                                // set by application[NRF51_DK]
+#define MBED_CONF_APP_LORA_DIO3                                               p20                                                                                                // set by application[NRF51_DK]
+#define MBED_CONF_APP_LORA_DIO4                                               p18                                                                                                // set by application[NRF51_DK]
+#define MBED_CONF_APP_LORA_DIO5                                               p0                                                                                                 // set by application[NRF51_DK]
 #define MBED_CONF_APP_LORA_PWR_AMP_CTL                                        NC                                                                                                 // set by application[NRF51_DK]
 #define MBED_CONF_APP_LORA_RADIO                                              SX1276                                                                                             // set by application
-#define MBED_CONF_APP_LORA_RESET                                              p10                                                                                                // set by application[NRF51_DK]
+#define MBED_CONF_APP_LORA_RESET                                              p2                                                                                                 // set by application[NRF51_DK]
 #define MBED_CONF_APP_LORA_RF_SWITCH_CTL1                                     NC                                                                                                 // set by application[NRF51_DK]
 #define MBED_CONF_APP_LORA_RF_SWITCH_CTL2                                     NC                                                                                                 // set by application[NRF51_DK]
 #define MBED_CONF_APP_LORA_RXCTL                                              NC                                                                                                 // set by application[NRF51_DK]
@@ -72,7 +72,7 @@
 #define MBED_CONF_LORA_APP_PORT                                               15                                                                                                 // set by library:lora
 #define MBED_CONF_LORA_AUTOMATIC_UPLINK_MESSAGE                               1                                                                                                  // set by library:lora
 #define MBED_CONF_LORA_DEVICE_ADDRESS                                         0x12345678                                                                                         // set by application[*]
-#define MBED_CONF_LORA_DEVICE_EUI                                             { 0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE, 0xF0 }                                                 // set by application[*]
+#define MBED_CONF_LORA_DEVICE_EUI                                             { 0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE, 0xF3 }                                                 // set by application[*]
 #define MBED_CONF_LORA_DOWNLINK_PREAMBLE_LENGTH                               5                                                                                                  // set by library:lora
 #define MBED_CONF_LORA_DUTY_CYCLE_ON                                          1                                                                                                  // set by application[*]
 #define MBED_CONF_LORA_DUTY_CYCLE_ON_JOIN                                     1                                                                                                  // set by library:lora
